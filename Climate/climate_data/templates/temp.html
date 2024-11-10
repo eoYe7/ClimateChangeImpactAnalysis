@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5" style="margin-left: 17%;">
+    <h2 class="text-center">Temperature Data</h2>
+    <p class="text-muted text-center">Discover how temperature has changed over time in various regions.</p>
+
+    {% if results %}
+        <!-- عرض الرسم البياني لدرجة الحرارة -->
+        <div class="chart-container mt-5">
+            <h3 class="text-center">Temperature Over Time</h3>
+            <canvas id="tempChart"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            // تحويل بيانات JSON من العرض إلى كائن جافا سكريبت
+            const tempData = JSON.parse('{{ temp_data_json|escapejs }}');
+
+            // إعداد الرسم البياني
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            const tempChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: tempData.dates,  // تواريخ
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: tempData.temperatures,  // درجات الحرارة
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: true,
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)'
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+    {% else %}
+        <!-- عرض رسالة عند عدم توفر بيانات -->
+        <div class="alert alert-info text-center mt-4" role="alert">
+            No temperature data found for the selected country.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

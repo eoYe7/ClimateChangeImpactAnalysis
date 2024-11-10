@@ -1,0 +1,50 @@
+{% extends 'climate_data/base.html' %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+    <h1>Search Results for Country</h1>
+
+    {% if results %}
+        <!-- جدول البيانات -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Country</th>
+                    <th>Temperature</th>
+                    <th>CO2 Emissions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in results %}
+                    <tr>
+                        <td>{{ result.date }}</td>
+                        <td>{{ result.country }}</td>
+                        <td>{{ result.temperature }}°C</td>
+                        <td>{{ result.co2_emissions }} ppm</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- عرض الرسوم البيانية -->
+        <div class="chart-container">
+            <h2>Temperature Over Time</h2>
+            {{ temp_chart|safe }}
+        </div>
+
+        <div class="chart-container">
+            <h2>CO2 Emissions Over Time</h2>
+            {{ co2_chart|safe }}
+        </div>
+
+        <div class="chart-container">
+            <h2>Temperature vs CO2 Emissions</h2>
+            {{ relation_chart|safe }}
+        </div>
+
+    {% else %}
+        <p class="no-results">No results found for the given country.</p>
+    {% endif %}
+{% endblock %}

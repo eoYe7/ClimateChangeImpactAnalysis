@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5 "style="margin-left: 17%;">
+    <h2 class="text-center">CO₂ Emissions and Temperature Prediction (Next 10 Years)</h2>
+    <p class="text-muted text-center">Predicted CO₂ emissions and temperatures over the next 10 years based on historical data.</p>
+
+    {% if co2_data_json %}
+        <!-- عرض الرسم البياني لانبعاثات CO2 -->
+        <div class="chart-container mt-5">
+            <h3 class="text-center">CO₂ Emissions Prediction Over Time</h3>
+            <canvas id="co2Chart"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            // تحويل بيانات JSON من العرض إلى كائن جافا سكريبت
+            const co2Data = JSON.parse('{{ co2_data_json|escapejs }}');
+
+            // إعداد الرسم البياني لCO₂
+            const ctx_co2 = document.getElementById('co2Chart').getContext('2d');
+            const co2Chart = new Chart(ctx_co2, {
+                type: 'line',
+                data: {
+                    labels: co2Data.dates,  // تواريخ
+                    datasets: [{
+                        label: 'Predicted CO₂ Emissions (ppm)',
+                        data: co2Data.co2_emissions,  // انبعاثات CO2 المتنبأ بها
+                        borderColor: 'rgba(75, 192, 192, 1)',  // اللون
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',  // اللون الخلفي
+                        fill: true,
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'CO₂ Emissions (ppm)'
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+    {% else %}
+        <!-- عرض رسالة عند عدم توفر بيانات CO2 -->
+        <div class="alert alert-info text-center mt-4" role="alert">
+            No CO₂ emissions data found for prediction.
+        </div>
+    {% endif %}
+
+    {% if temp_data_json %}
+        <!-- عرض الرسم البياني لدرجات الحرارة -->
+        <div class="chart-container mt-5">
+            <h3 class="text-center">Temperature Prediction Over Time</h3>
+            <canvas id="tempChart"></canvas>
+        </div>
+
+        <script>
+            // تحويل بيانات JSON من العرض إلى كائن جافا سكريبت
+            const tempData = JSON.parse('{{ temp_data_json|escapejs }}');
+
+            // إعداد الرسم البياني لدرجة الحرارة
+            const ctx_temp = document.getElementById('tempChart').getContext('2d');
+            const tempChart = new Chart(ctx_temp, {
+                type: 'line',
+                data: {
+                    labels: tempData.dates,  // تواريخ
+                    datasets: [{
+                        label: 'Predicted Temperature (°C)',
+                        data: tempData.temperatures,  // درجات الحرارة المتنبأ بها
+                        borderColor: 'rgba(255, 99, 132, 1)',  // اللون
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',  // اللون الخلفي
+                        fill: true,
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)'
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+    {% else %}
+        <!-- عرض رسالة عند عدم توفر بيانات درجات الحرارة -->
+        <div class="alert alert-info text-center mt-4" role="alert">
+            No temperature data found for prediction.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
