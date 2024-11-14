@@ -10,12 +10,11 @@ table {
     border-collapse: separate;
     border-spacing: 0 8px;
     margin: 40px auto;
-    margin-left: 17%; /* يدفع الجدول قليلاً إلى اليمين */
+    margin-left: 17%;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     overflow: hidden;
 }
-
 
 th, td {
     padding: 15px;
@@ -56,25 +55,22 @@ tr td:last-child, tr th:last-child {
 
 /* Chart container styles */
 .chart-container {
-    background-color: #f7f9fc; /* لون خلفية فاتح */
-    padding: 30px; /* مسافة داخلية معتدلة */
+    background-color: #f7f9fc;
+    padding: 30px;
     margin: 30px auto;
-    margin-left: 17%; /* يحرك العنصر قليلاً باتجاه اليمين */
-    width: 80%; /* تحديد العرض */
+    margin-left: 17%;
+    width: 80%;
     border-radius: 10px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1); /* تأثير الظل */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
 
-
-
-/* إضافة مسافة بين الرسوم البيانية */
 .chart-container + .chart-container {
-    margin-top: 40px; /* مسافة أكبر بين الرسوم البيانية */
+    margin-top: 40px;
 }
 
 .chart-container:hover {
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* زيادة الظل عند التمرير */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .chart-container h2 {
@@ -90,7 +86,7 @@ tr td:last-child, tr th:last-child {
 /* Responsive behavior */
 .chart-container canvas {
     width: 100% !important;
-    height: 300px !important; /* ارتفاع ثابت مناسب للرسوم البيانية */
+    height: 300px !important;
 }
 
 </style>
@@ -119,20 +115,19 @@ tr td:last-child, tr th:last-child {
 
 <!-- Display charts -->
 <div class="chart-container">
-    <h2>Temperature Over Time/</h2>
+    <h2>Temperature Over Time</h2>
     {{ temp_chart|safe }}
 </div>
 
 <div class="chart-container">
-    <h2>CO2 Emissions Over Time/</h2>
+    <h2>CO2 Emissions Over Time</h2>
     {{ co2_chart|safe }}
 </div>
 
 <div class="chart-container">
-    <h2>Temperature vs CO2 Emissions/</h2>
+    <h2>Temperature vs CO2 Emissions</h2>
     {{ relation_chart|safe }}
 </div>
-
 {% else %}
 <p class="no-results">No results found for the given country.</p>
 {% endif %}

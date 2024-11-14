@@ -1,17 +1,20 @@
-import csv
-import numpy as np
-from sklearn.linear_model import LinearRegression
-import json
-from django.db.models import Max, Avg
-from .models import RegionData
-from django.shortcuts import render
-from django.db import models
-from datetime import datetime
-import plotly.express as px
-import plotly.io as pio
-from django.db.models import Avg
-import pydeck as pdk
-from django.http import HttpResponse
+import csv  # مكتبة CSV لقراءة وكتابة ملفات CSV (قيم مفصولة بفواصل)
+from django.shortcuts import render  # استيراد دالة render لعرض الصفحات (تستخدم في عرض القوالب HTML في Django)
+from .models import RegionData  # استيراد نموذج RegionData من الملف models.py للوصول إلى البيانات في قاعدة البيانات
+import json  # مكتبة JSON للتعامل مع البيانات بصيغة JSON، مثل تحويل الكائنات إلى JSON والعكس
+from django.http import HttpResponse  # استيراد HttpResponse لإنشاء استجابات HTTP في Django (مثل إرسال ملف أو رسالة للمستخدم)
+from django.db.models import Max, Avg  # استيراد دوال Max وAvg لحساب القيم القصوى والمتوسط من قاعدة البيانات باستخدام Django ORM
+from datetime import datetime  # استيراد datetime للعمل مع التواريخ والأوقات في Python
+import plotly.express as px  # استيراد مكتبة Plotly Express لإنشاء الرسوم البيانية التفاعلية
+import plotly.io as pio  # استيراد مكتبة Plotly IO للتعامل مع رسومات Plotly (مثل حفظ أو عرض الرسومات)
+from reportlab.pdfgen import canvas  # استيراد Canvas من ReportLab لإنشاء رسومات PDF من خلال الكود
+from reportlab.lib.pagesizes import letter  # استيراد مقاس "letter" من ReportLab لاستخدامه عند إنشاء ملفات PDF
+import numpy as np  # استيراد مكتبة NumPy للعمل مع المصفوفات الرياضية والعمليات العددية
+from sklearn.linear_model import LinearRegression  # استيراد LinearRegression من scikit-learn لإنشاء نماذج الانحدار الخطي للتنبؤ
+import plotly.utils  # استيراد utils من plotl
+import pandas as pd
+
+
 def load_data_from_csv(request):
     with open('D:/Project_django/climate_selected_columns.csv', newline='') as csvfile:
         reader = csv.DictReader(csvfile)
@@ -24,13 +27,6 @@ def load_data_from_csv(request):
                 co2_emissions=float(row['CO2 Emissions'])
             )
     return render(request, 'climate_data/data_loaded.html')
-
-# def home(request):
-#     return render(request, 'home.html')
-
-def about(request):
-    return render(request, 'climate_data/about.html')
-
 
 
 def search(request):
@@ -66,29 +62,6 @@ def search(request):
     else:
         return render(request, 'home.html', {'results': None})
 
-
-    # إذا كانت هناك نتائج
-    if results:
-        # جمع البيانات المطلوبة: التاريخ ودرجة الحرارة واسم الدولة
-        dates = [result.date for result in results]
-        temperatures = [result.temperature for result in results]
-        countries = [result.country for result in results]
-
-        # رسم المخطط الزمني لدرجات الحرارة
-        fig_temp = px.line(x=dates, y=temperatures, title="Temperature Over Time")
-        temp_chart = pio.to_html(fig_temp, full_html=False)
-
-        # تمرير البيانات إلى القالب temp.html
-        return render(request, 'temp.html', {
-            'results': results,
-            'temp_chart': temp_chart,
-        })
-    else:
-        return render(request, 'temp.html', {'results': None})
-
-# def home_dash(request):
-#     # your logic here
-#     return render(request, 'home_dash.html')
 
 
 def home(request):
@@ -131,6 +104,7 @@ def home(request):
 
 
 
+
 def temp(request):
     # استعلام لجلب بيانات درجة الحرارة من RegionData
     results = RegionData.objects.all()
@@ -148,7 +122,6 @@ def temp(request):
 
     # تمرير البيانات إلى القالب
     return render(request, 'temp.html', {'results': results, 'temp_data_json': temp_data_json})
-
 
 
 def co2(request):
@@ -225,11 +198,6 @@ def Climaforecast(request):
 
 
 
-
-from django.shortcuts import render
-from django.db.models import Avg
-import json
-
 def heatMaps(request):
     # جلب بيانات درجات الحرارة واسم البلد من قاعدة البيانات
     data = RegionData.objects.values('country').distinct()
@@ -243,7 +211,7 @@ def heatMaps(request):
         'Australia': {'latitude': -25.2744, 'longitude': 133.7751}
     }
 
-    # جمع البيانات
+    # جمع البيانات للحرارة
     heat_map_data = []
     
     for entry in data:
@@ -252,10 +220,12 @@ def heatMaps(request):
         
         # إذا كان هناك درجة حرارة متاحة، قم بإضافتها إلى الخريطة الحرارية
         if avg_temperature is not None:
+            # جلب الإحداثيات من القاموس أو وضع إحداثيات افتراضية
+            coordinates = country_coordinates.get(country, {'latitude': 0, 'longitude': 0})
             heat_map_data.append({
                 'country': country,
                 'avg_temperature': avg_temperature,
-                'coordinates': country_coordinates.get(country, {'latitude': 0, 'longitude': 0})
+                'coordinates': coordinates
             })
 
     # تحويل البيانات إلى تنسيق JSON ليتم تمريرها إلى JavaScript
@@ -263,3 +233,77 @@ def heatMaps(request):
 
     # إرسال البيانات إلى القالب
     return render(request, 'heat_maps.html', {'heat_map_data': heat_map_data_json})
+
+def export_data(request):
+    # افتراضياً نستخدم CSV كصيغة
+    export_format = request.POST.get('format', 'csv')  # إذا لم يتم اختيار، سيكون الافتراضي CSV
+    include_charts = request.POST.get('include_charts', False)  # إذا كان البيانات مع الرسوم البيانية أو لا
+
+    # تحديد البيانات التي سيتم تصديرها
+    data = RegionData.objects.all()
+
+    if export_format == 'pdf':
+        # تصدير البيانات إلى PDF
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="climate_data.pdf"'
+
+        c = canvas.Canvas(response, pagesize=letter)
+        c.setFont("Helvetica-Bold", 14)
+        c.drawString(100, 750, "Climate Change Data Report")
+
+        c.setFont("Helvetica", 10)
+        y_position = 730
+        for record in data:
+            c.drawString(100, y_position, f"Country: {record.country}")
+            c.drawString(200, y_position, f"Date: {record.date}")
+            c.drawString(300, y_position, f"Temperature: {record.temperature}")
+            c.drawString(400, y_position, f"CO2 Emissions: {record.co2_emissions}")
+            y_position -= 20
+            if y_position < 50:
+                c.showPage()
+                c.setFont("Helvetica", 10)
+                y_position = 750
+        c.save()
+        return response
+
+    elif export_format == 'csv':
+        # تصدير البيانات إلى CSV
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="climate_data.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['Country', 'Date', 'Temperature', 'CO2 Emissions'])
+
+        for record in data:
+            writer.writerow([record.country, record.date, record.temperature, record.co2_emissions])
+
+        return response
+
+
+def heatMaps(request):
+    # تأكد من أنك تقوم بجلب البيانات الصحيحة في التطبيق الخاص بك
+    data = {
+        'Country': ['USA', 'Canada', 'Brazil', 'India', 'China'],
+        'Precipitation': [1200, 1500, 2000, 800, 1000]
+    }
+    df = pd.DataFrame(data)
+
+    # تجميع البيانات حسب الدولة وحساب متوسط المتساقطات
+    precipitation_by_country = df.groupby('Country').agg({'Precipitation': 'mean'}).reset_index()
+
+    # إنشاء الرسم البياني باستخدام Plotly
+    fig_precipitation = px.choropleth(
+        precipitation_by_country,
+        locations="Country",
+        locationmode="country names",
+        color="Precipitation",
+        hover_name="Country",
+        color_continuous_scale="Viridis",
+        title="Global Precipitation Heat Map"
+    )
+
+    # تحويل الرسم البياني إلى JSON باستخدام PlotlyJSONEncoder
+    graph_json = json.dumps(fig_precipitation, cls=plotly.utils.PlotlyJSONEncoder)
+
+    # تمرير البيانات إلى القالب
+    return render(request, 'heat_maps.html', {'graph_json': graph_json})

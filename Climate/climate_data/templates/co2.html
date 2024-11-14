@@ -8,51 +8,79 @@
     <p class="text-muted text-center">Track CO₂ emissions over time in various regions.</p>
 
     {% if co2_data_json %}
-        <!-- عرض الرسم البياني لانبعاثات CO2 -->
+        <!-- Display CO₂ Emissions Chart -->
         <div class="chart-container mt-5">
             <h3 class="text-center">CO₂ Emissions Over Time</h3>
             <canvas id="co2Chart"></canvas>
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-            // تحويل بيانات JSON من العرض إلى كائن جافا سكريبت
-            const co2Data = JSON.parse('{{ co2_data_json|escapejs }}');
+        <!-- Download Chart Button -->
+        <div class="text-center mt-4">
+            <button id="downloadBtn" class="btn btn-primary">Download Chart</button>
+        </div>
 
-            // إعداد الرسم البياني
-            const ctx = document.getElementById('co2Chart').getContext('2d');
-            const co2Chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: co2Data.dates,  // تواريخ
-                    datasets: [{
-                        label: 'CO₂ Emissions (ppm)',
-                        data: co2Data.co2_emissions,  // انبعاثات CO2
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        fill: true,
-                    }]
-                },
-                options: {
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'CO₂ Emissions (ppm)'
+        <!-- Include Chart.js and FileSaver.js Libraries -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Parse JSON data to JavaScript object
+                const co2Data = JSON.parse('{{ co2_data_json|escapejs }}');
+
+                // Set up the chart
+                const ctx = document.getElementById('co2Chart').getContext('2d');
+                const co2Chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: co2Data.dates,  // Dates
+                        datasets: [{
+                            label: 'CO₂ Emissions (ppm)',
+                            data: co2Data.co2_emissions,  // CO2 emissions data
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: true,
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'CO₂ Emissions (ppm)'
+                                }
                             }
                         }
                     }
+                });
+
+                // Download the chart as an image
+                document.getElementById('downloadBtn').addEventListener('click', function() {
+                    const dataURL = ctx.canvas.toDataURL('image/png'); // Get image data from canvas
+                    const blob = dataURItoBlob(dataURL); // Convert image data to Blob
+                    saveAs(blob, 'co2_emissions_chart.png'); // Download image using FileSaver.js
+                });
+
+                // Function to convert DataURL to Blob
+                function dataURItoBlob(dataURI) {
+                    const byteString = atob(dataURI.split(',')[1]);
+                    const arrayBuffer = new ArrayBuffer(byteString.length);
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    for (let i = 0; i < byteString.length; i++) {
+                        uint8Array[i] = byteString.charCodeAt(i);
+                    }
+                    return new Blob([uint8Array], {type: 'image/png'});
                 }
             });
         </script>
     {% else %}
-        <!-- عرض رسالة عند عدم توفر بيانات -->
+        <!-- Message if no data is available -->
         <div class="alert alert-info text-center mt-4" role="alert">
             No CO₂ emissions data found for the selected country.
         </div>

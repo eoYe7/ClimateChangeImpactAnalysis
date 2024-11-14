@@ -1,46 +1,24 @@
 {% extends 'base.html' %}
+
 {% load static %}
 
+<!-- precipitation_map.html -->
+
+
 {% block content %}
-<div class="container my-5" style="margin-left: 15%;">
-    <h2 class="text-center">Interactive 3D Globe with Temperature Data</h2>
-    <p class="text-muted text-center">Rotate the globe to explore temperature data across different regions.</p>
+<div class="container my-5">
+    <h2 class="text-center">Global Precipitation Heat Map</h2>
 
-    <!-- عنصر كرة الأرض التفاعلية -->
-    <div id="heat-map" style="height: 600px; width: 100%; margin: 0 auto;"></div>
+    <!-- عرض الخريطة -->
+    <div id="chart" style="height: 600px;"></div>
 
-    <!-- إضافة مكتبة Globe.gl -->
-    <script src="https://unpkg.com/globe.gl@2.0.0"></script>
-    
-    <!-- تحميل البيانات من Django إلى JavaScript -->
+    <!-- تضمين مكتبة Plotly -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <!-- تمثيل الرسم البياني من خلال JSON -->
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            // تحميل البيانات من Django
-            const heatMapData = JSON.parse('{{ heat_map_data|escapejs }}');
-            console.log(heatMapData);  // تحقق من أن البيانات تم تحميلها بشكل صحيح
-
-            // إنشاء الكرة الأرضية
-            const globe = Globe()
-                .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-                .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-                .width(window.innerWidth * 0.8)
-                .height(600);
-
-            document.getElementById('heat-map').appendChild(globe);
-
-            // إعداد النقاط بناءً على بيانات درجات الحرارة
-            globe
-                .pointsData(heatMapData)
-                .pointLat(d => d.coordinates.latitude)
-                .pointLng(d => d.coordinates.longitude)
-                .pointAltitude(d => d.avg_temperature / 50)  // تعديل الارتفاع حسب درجة الحرارة
-                .pointColor(d => `rgba(255, ${255 - d.avg_temperature * 5}, 0, 0.7)`) // تغيير اللون بناءً على درجة الحرارة
-                .pointRadius(0.3);
-
-            // جعل الكرة الأرضية قابلة للتدوير
-            globe.controls().autoRotate = true;
-            globe.controls().autoRotateSpeed = 0.5;
-        });
+        var graphData = {{ graph_json|safe }};
+        Plotly.newPlot('chart', graphData.data, graphData.layout);
     </script>
 </div>
 {% endblock %}
